@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IPL Win Probability</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0e1a;
+      --surface:   #111827;
+      --border:    #1f2d45;
+      --accent:    #f97316;
+      --accent2:   #3b82f6;
+      --win:       #22c55e;
+      --lose:      #ef4444;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --input-bg:  #0d1626;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    header h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    header span {
+      color: var(--accent);
+    }
+
+    /* ── Main layout ── */
+    main {
+      width: 100%;
+      max-width: 900px;
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .hero-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+    .hero-label span { color: var(--accent); }
+
+    .sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    /* ── Form card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    select, input[type="number"] {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+    select option { background: #111827; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── Button ── */
+    .btn-predict {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-predict:hover { opacity: 0.88; }
+    .btn-predict:active { transform: scale(0.99); }
+    .btn-predict:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Result panel ── */
+    #result {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .matchup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .matchup .vs {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .prob-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .prob-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .prob-team {
+      width: 180px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    .bar-fill.win  { background: var(--win); }
+    .bar-fill.lose { background: var(--lose); }
+    .prob-pct {
+      width: 48px;
+      text-align: right;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .prob-pct.win  { color: var(--win); }
+    .prob-pct.lose { color: var(--lose); }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: flex;
+      gap: 0;
+      margin-top: 28px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stat {
+      flex: 1;
+      padding: 14px 16px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    /* ── Error ── */
+    .error-msg {
+      color: var(--lose);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero-label { font-size: 2rem; }
+      .prob-team { width: 120px; }
+      .stats-strip { flex-wrap: wrap; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot"></div>
+  <h1>IPL <span>Win</span> Predictor</h1>
+</header>
+
+<main>
+  <div>
+    <div class="hero-label">Who's <span>winning</span>?</div>
+    <p class="sub">Enter the match situation and get a live win probability.</p>
+  </div>
+
+  <div class="card">
+    <!-- Teams -->
+    <p class="section-label">Teams</p>
+    <div class="grid-2">
+      <div class="field">
+        <label>Batting Team</label>
+        <select id="batting_team">
+          <option value="">Select team</option>
+          {% for t in teams %}
+          <option value="{{ t }}">{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Bowling Team</label>
+        <select id="bowling_team">
+          <option value="">Select team</option>
+          {% for t in teams %}
+          <option value="{{ t }}">{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Venue -->
+    <p class="section-label">Venue</p>
+    <div class="field" style="max-width: 340px;">
+      <label>City</label>
+      <select id="city">
+        <option value="">Select city</option>
+        {% for c in cities %}
+        <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Match situation -->
+    <p class="section-label">Match Situation</p>
+    <div class="grid-3">
+      <div class="field">
+        <label>Target</label>
+        <input type="number" id="target" placeholder="e.g. 178" min="1" max="400"/>
+      </div>
+      <div class="field">
+        <label>Current Score</label>
+        <input type="number" id="current_score" placeholder="e.g. 94" min="0" max="400"/>
+      </div>
+      <div class="field">
+        <label>Wickets Left</label>
+        <input type="number" id="wickets_left" placeholder="e.g. 6" min="0" max="10"/>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top: 20px; max-width: 460px;">
+      <div class="field">
+        <label>Balls Left</label>
+        <input type="number" id="balls_left" placeholder="e.g. 54" min="1" max="120"/>
+      </div>
+    </div>
+
+    <p class="error-msg" id="error-msg">Please fill in all fields correctly.</p>
+    <button class="btn-predict" id="predict-btn" onclick="predict()">Predict →</button>
+  </div>
+
+  <!-- Result -->
+  <div id="result">
+    <p class="result-header">Win Probability</p>
+    <div class="matchup">
+      <span id="r-batting"></span>
+      <span class="vs">vs</span>
+      <span id="r-bowling"></span>
+    </div>
+
+    <div class="prob-bars">
+      <div class="prob-row">
+        <div class="prob-team" id="bar-batting-label"></div>
+        <div class="bar-track">
+          <div class="bar-fill win" id="bar-win" style="width:0%"></div>
+        </div>
+        <div class="prob-pct win" id="pct-win">—</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-team" id="bar-bowling-label"></div>
+        <div class="bar-track">
+          <div class="bar-fill lose" id="bar-lose" style="width:0%"></div>
+        </div>
+        <div class="prob-pct lose" id="pct-lose">—</div>
+      </div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat">
+        <div class="stat-label">Runs Needed</div>
+        <div class="stat-value" id="s-runs">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Balls Left</div>
+        <div class="stat-value" id="s-balls">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">CRR</div>
+        <div class="stat-value" id="s-crr">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">RRR</div>
+        <div class="stat-value" id="s-rrr">—</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  async function predict() {
+    const batting_team  = document.getElementById('batting_team').value;
+    const bowling_team  = document.getElementById('bowling_team').value;
+    const city          = document.getElementById('city').value;
+    const target        = document.getElementById('target').value;
+    const current_score = document.getElementById('current_score').value;
+    const wickets_left  = document.getElementById('wickets_left').value;
+    const balls_left    = document.getElementById('balls_left').value;
+    const errEl         = document.getElementById('error-msg');
+
+    if (!batting_team || !bowling_team || !city || !target || current_score === '' || !wickets_left || !balls_left) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Please fill in all fields.';
+      return;
+    }
+    if (batting_team === bowling_team) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Batting and bowling teams must be different.';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('predict-btn');
+    btn.disabled = true;
+    btn.textContent = 'Predicting…';
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batting_team, bowling_team, city, target, current_score, wickets_left, balls_left })
+      });
+      const data = await res.json();
+
+      // Populate result
+      document.getElementById('r-batting').textContent = data.batting_team;
+      document.getElementById('r-bowling').textContent = data.bowling_team;
+      document.getElementById('bar-batting-label').textContent = data.batting_team;
+      document.getElementById('bar-bowling-label').textContent = data.bowling_team;
+
+      document.getElementById('pct-win').textContent  = data.win + '%';
+      document.getElementById('pct-lose').textContent = data.lose + '%';
+
+      // Animate bars after a tick
+      setTimeout(() => {
+        document.getElementById('bar-win').style.width  = data.win + '%';
+        document.getElementById('bar-lose').style.width = data.lose + '%';
+      }, 50);
+
+      document.getElementById('s-runs').textContent  = data.runs_left;
+      document.getElementById('s-balls').textContent = data.balls_left;
+      document.getElementById('s-crr').textContent   = data.crr;
+      document.getElementById('s-rrr').textContent   = data.rrr;
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch(e) {
+      errEl.style.display = 'block';
+      errEl.textContent = 'Server error. Make sure Flask is running.';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Predict →';
+  }
+</script>
+
+</body>
+</html>
