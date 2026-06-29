@@ -4,12 +4,6 @@ A machine learning web app that predicts the **live win probability** of IPL tea
 
 ---
 
-## 📸 Demo
-
-> Enter the live match situation and get real-time win probabilities for both teams.
-
----
-
 ## 🗂️ Project Structure
 
 ```
